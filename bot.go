@@ -130,6 +130,12 @@ func alertHandler(mattermostURL string) http.Handler {
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("Error reading Mattermost response: %s\n", err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		fmt.Println("Response status:", resp.Status)
 		fmt.Println("Response:", string(body))
 	})
