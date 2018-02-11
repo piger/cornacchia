@@ -1,0 +1,32 @@
+language: go
+go:
+- 1.9
+install:
+- go get github.com/golang/lint/golint
+- go get honnef.co/go/tools/cmd/megacheck
+- curl -L -o dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
+- chmod 755 dep
+- "./dep ensure"
+script:
+- go vet ./...
+- megacheck ./...
+- golint -set_exit_status $(go list ./...)
+- go build ./cmd/cornacchia
+before_deploy:
+- GOOS=linux GOARCH=amd64 go build -o cornacchia_linux_amd64 ./cmd/cornacchia
+- GOOS=linux GOARCH=386 go build -o cornacchia_linux_x86 ./cmd/cornacchia
+- GOOS=linux GOARCH=arm go build -o cornacchia_linux_arm ./cmd/cornacchia
+- GOOS=darwin GOARCH=amd64 go build -o cornacchia_darwin_amd64 ./cmd/cornacchia
+deploy:
+  provider: releases
+  api_key:
+    secure: QdVCPajzwLLVa6mm0mGEAzpd0JNCG0aTpp2p9mUWLrH6hlSZ+gWAy6DZRXY4iATRbxTXpF8SexDWvhZTdrQYdDqEwtKEY0NtSaYQs8CioW3L15qQjbb49K9CAcohKs9XV0i5d7bkTHWS+NBAK5emA+sfA6oObKOI3bGecHsNW/LT4fagCbbCLg2yc8VCuCO858rAIYy3GwqsOI4unjdhuyksH0Pmck8FlaajFo8dEAqxowB+4GfpyWXARrmJ/jnNmnDaRlRByFcRDcmnAg/vM7+bXKv/pboKT5KSg2L00PtrfVB8fg+NtaIBOw8Y6UBK2JfqefnFxmqCmsXdoeq/rDXwVUezaZVwbdeggQBrzYoQsKiw8TthswNoKcNgkxJvy1WTXmhd8xE8J5EttGflYulySxIC9s9yk9ZkdfY9lr7RWQs2ntyvDif+gUfVd2trsHGQ+LHfOlbFNJxFJY+/1QKmEun/DXKSjge7Hw4JBA9gMHTR8nNs3omrtjXAkEH7IpDeQIBdsHiL5yYDhb8ejLbx8jkSsjmt9Op5dKoZwhGZNfwGRle7l/kMW6WXavCMsSsI9CF6WxasNSU3Iqxwjo/E2aYcRxMc/LNuVg3N3SCW4t3EGBduRvOZc0E6GgpgDx4tnnQrpCFDCOIYno84a8nmFrboywgSznSJx6ZcXEM=
+  file:
+    - cornacchia_linux_amd64
+    - cornacchia_linux_x86
+    - cornacchia_linux_arm
+    - cornacchia_darwin_amd64
+  skip_cleanup: true
+  on:
+    repo: piger/cornacchia
+    tags: true
